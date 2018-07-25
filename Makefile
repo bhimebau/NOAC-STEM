@@ -2,6 +2,11 @@
 # see http://mbed.org/handbook/Exporting-to-GCC-ARM-Embedded
 
 ###############################################################################
+
+# ifeq (,$(wildcard ./TAGS))
+# 	touch TAGS
+# endif
+
 # Boiler-plate
 
 # cross-platform directory manipulation
@@ -29,6 +34,7 @@ Makefile : ;
 % :: $(OBJDIR) ; :
 clean :
 	$(call RM,$(OBJDIR))
+	rm -f TAGS
 
 else
 
@@ -375,27 +381,27 @@ all: $(PROJECT).bin $(PROJECT).hex size
 .s.o:
 	+@$(call MAKEDIR,$(dir $@))
 	+@echo "Assemble: $(notdir $<)"
-  
 	@$(AS) -c $(ASM_FLAGS) -o $@ $<
-  
+	@etags -o ../TAGS --append $<
 
 
 .S.o:
 	+@$(call MAKEDIR,$(dir $@))
 	+@echo "Assemble: $(notdir $<)"
-  
 	@$(AS) -c $(ASM_FLAGS) -o $@ $<
-  
+	@etags -o ../TAGS --append $<
 
 .c.o:
 	+@$(call MAKEDIR,$(dir $@))
 	+@echo "Compile: $(notdir $<)"
 	@$(CC) $(C_FLAGS) $(INCLUDE_PATHS) -o $@ $<
+	@etags -o ../TAGS --append $<
 
 .cpp.o:
 	+@$(call MAKEDIR,$(dir $@))
 	+@echo "Compile: $(notdir $<)"
 	@$(CPP) $(CXX_FLAGS) $(INCLUDE_PATHS) -o $@ $<
+	@etags -o ../TAGS --append $<
 
 
 $(PROJECT).link_script.ld: $(LINKER_SCRIPT)
@@ -411,7 +417,7 @@ $(PROJECT).elf: $(OBJECTS) $(SYS_OBJECTS) $(PROJECT).link_script.ld
 $(PROJECT).bin: $(PROJECT).elf
 	$(ELF2BIN) -O binary $< $@
 	+@echo "===== bin file ready to flash: $(OBJDIR)/$@ ====="
-	cp ../.gdbinit .
+	@cp ../.gdbinit .
 
 $(PROJECT).hex: $(PROJECT).elf
 	$(ELF2BIN) -O ihex $< $@
