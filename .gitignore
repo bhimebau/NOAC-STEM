@@ -30,3 +30,5 @@
 *.exe
 *.out
 *.app
+
+mbed/.bld/.rev-a7c7b631e539.zip

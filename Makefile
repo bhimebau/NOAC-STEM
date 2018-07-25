@@ -410,7 +410,8 @@ $(PROJECT).elf: $(OBJECTS) $(SYS_OBJECTS) $(PROJECT).link_script.ld
 
 $(PROJECT).bin: $(PROJECT).elf
 	$(ELF2BIN) -O binary $< $@
-	+@echo "===== bin file ready to flash: $(OBJDIR)/$@ =====" 
+	+@echo "===== bin file ready to flash: $(OBJDIR)/$@ ====="
+	cp ../.gdbinit .
 
 $(PROJECT).hex: $(PROJECT).elf
 	$(ELF2BIN) -O ihex $< $@
