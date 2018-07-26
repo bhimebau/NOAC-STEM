@@ -34,7 +34,11 @@ Makefile : ;
 % :: $(OBJDIR) ; :
 clean :
 	$(call RM,$(OBJDIR))
+
+tags:
 	rm -f TAGS
+	find . -type f -iname "*.[ch]" | xargs etags --append
+	find . -type f -iname "*.cpp" | xargs etags --append
 
 else
 
@@ -382,31 +386,26 @@ all: $(PROJECT).bin $(PROJECT).hex size
 	+@$(call MAKEDIR,$(dir $@))
 	+@echo "Assemble: $(notdir $<)"
 	@$(AS) -c $(ASM_FLAGS) -o $@ $<
-	@etags -o ../TAGS --append $<
 
 
 .S.o:
 	+@$(call MAKEDIR,$(dir $@))
 	+@echo "Assemble: $(notdir $<)"
 	@$(AS) -c $(ASM_FLAGS) -o $@ $<
-	@etags -o ../TAGS --append $<
 
 .c.o:
 	+@$(call MAKEDIR,$(dir $@))
 	+@echo "Compile: $(notdir $<)"
 	@$(CC) $(C_FLAGS) $(INCLUDE_PATHS) -o $@ $<
-	@etags -o ../TAGS --append $<
 
 .cpp.o:
 	+@$(call MAKEDIR,$(dir $@))
 	+@echo "Compile: $(notdir $<)"
 	@$(CPP) $(CXX_FLAGS) $(INCLUDE_PATHS) -o $@ $<
-	@etags -o ../TAGS --append $<
 
 
 $(PROJECT).link_script.ld: $(LINKER_SCRIPT)
 	@$(PREPROC) $< -o $@
-
 
 
 $(PROJECT).elf: $(OBJECTS) $(SYS_OBJECTS) $(PROJECT).link_script.ld 
@@ -422,6 +421,8 @@ $(PROJECT).bin: $(PROJECT).elf
 $(PROJECT).hex: $(PROJECT).elf
 	$(ELF2BIN) -O ihex $< $@
 
+download: $(PROJECT).bin
+	st-flash write $(PROJECT).bin 0x8000000 > st-flash.log 2>&1
 
 # Rules
 ###############################################################################

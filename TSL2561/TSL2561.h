@@ -1,151 +1,164 @@
-#ifndef _TSL2561_H_
-#define _TSL2561_H_
-
+/*
+ * mbed library program
+ *  Luminosity sensor -- LIGHT-TO-DIGITAL CONVERTER (light intensity to a digital signal output)
+ *  TSL2561 by Texas Advanced Optoelectronic Solutions Inc.
+ *
+ * Copyright (c) 2015,'17,'18 Kenji Arai / JH1PJL
+ *  http://www.page.sannet.ne.jp/kenjia/index.html
+ *  http://mbed.org/users/kenjiArai/
+ *      Created: Feburary   21st, 2015
+ *      Revised: August     23rd, 2017
+ *      Revised: Feburary   20th, 2018   bug fix -> read_ID() & who_am_i()
+ *                                       Thanks PARK JAICHANG
+ */
+/*
+ *---------------- REFERENCE ----------------------------------------------------------------------
+ *  https://docs.google.com/viewer?url=http%3A%2F%2Fwww.adafruit.com%2Fdatasheets%2FTSL256x.pdf
+ *  https://learn.adafruit.com/tsl2561?view=all
+ *  http://www.adafruit.com/products/439
+ *  http://akizukidenshi.com/catalog/g/gM-08219/
+ */
+ 
+#ifndef TSL2561_H
+#define TSL2561_H
+ 
 #include "mbed.h"
-
-#define TSL2561_I2C_PINNAME_SDA PB_7
-#define TSL2561_I2C_PINNAME_SCL PB_6
-
-#define TSL2561_VISIBLE         2                   // channel 0 - channel 1
-#define TSL2561_INFRARED        1                  // channel 1
-#define TSL2561_FULLSPECTRUM    0              // channel 0
-
-// 3 i2c address options!
-#define TSL2561_ADDR_LOW    0x29
-#define TSL2561_ADDR_FLOAT  0x39
-#define TSL2561_ADDR_HIGH   0x49
-
-// Lux calculations differ slightly for CS package
-//#define TSL2561_PACKAGE_CS
-#define TSL2561_PACKAGE_T_FN_CL
-
-#define TSL2561_READBIT           (0x01)
-
-#define TSL2561_COMMAND_BIT       (0x80)    // Must be 1
-#define TSL2561_CLEAR_BIT         (0x40)    // Clears any pending interrupt (write 1 to clear)
-#define TSL2561_WORD_BIT          (0x20)    // 1 = read/write word (rather than byte)
-#define TSL2561_BLOCK_BIT         (0x10)    // 1 = using block read/write
-
-#define TSL2561_CONTROL_POWERON   (0x03)
-#define TSL2561_CONTROL_POWEROFF  (0x00)
-
-#define TSL2561_LUX_LUXSCALE      (14)      // Scale by 2^14
-#define TSL2561_LUX_RATIOSCALE    (9)       // Scale ratio by 2^9
-#define TSL2561_LUX_CHSCALE       (10)      // Scale channel values by 2^10
-#define TSL2561_LUX_CHSCALE_TINT0 (0x7517)  // 322/11 * 2^TSL2561_LUX_CHSCALE
-#define TSL2561_LUX_CHSCALE_TINT1 (0x0FE7)  // 322/81 * 2^TSL2561_LUX_CHSCALE
-
-// T, FN and CL package values
-#define TSL2561_LUX_K1T           (0x0040)  // 0.125 * 2^RATIO_SCALE
-#define TSL2561_LUX_B1T           (0x01f2)  // 0.0304 * 2^LUX_SCALE
-#define TSL2561_LUX_M1T           (0x01be)  // 0.0272 * 2^LUX_SCALE
-#define TSL2561_LUX_K2T           (0x0080)  // 0.250 * 2^RATIO_SCALE
-#define TSL2561_LUX_B2T           (0x0214)  // 0.0325 * 2^LUX_SCALE
-#define TSL2561_LUX_M2T           (0x02d1)  // 0.0440 * 2^LUX_SCALE
-#define TSL2561_LUX_K3T           (0x00c0)  // 0.375 * 2^RATIO_SCALE
-#define TSL2561_LUX_B3T           (0x023f)  // 0.0351 * 2^LUX_SCALE
-#define TSL2561_LUX_M3T           (0x037b)  // 0.0544 * 2^LUX_SCALE
-#define TSL2561_LUX_K4T           (0x0100)  // 0.50 * 2^RATIO_SCALE
-#define TSL2561_LUX_B4T           (0x0270)  // 0.0381 * 2^LUX_SCALE
-#define TSL2561_LUX_M4T           (0x03fe)  // 0.0624 * 2^LUX_SCALE
-#define TSL2561_LUX_K5T           (0x0138)  // 0.61 * 2^RATIO_SCALE
-#define TSL2561_LUX_B5T           (0x016f)  // 0.0224 * 2^LUX_SCALE
-#define TSL2561_LUX_M5T           (0x01fc)  // 0.0310 * 2^LUX_SCALE
-#define TSL2561_LUX_K6T           (0x019a)  // 0.80 * 2^RATIO_SCALE
-#define TSL2561_LUX_B6T           (0x00d2)  // 0.0128 * 2^LUX_SCALE
-#define TSL2561_LUX_M6T           (0x00fb)  // 0.0153 * 2^LUX_SCALE
-#define TSL2561_LUX_K7T           (0x029a)  // 1.3 * 2^RATIO_SCALE
-#define TSL2561_LUX_B7T           (0x0018)  // 0.00146 * 2^LUX_SCALE
-#define TSL2561_LUX_M7T           (0x0012)  // 0.00112 * 2^LUX_SCALE
-#define TSL2561_LUX_K8T           (0x029a)  // 1.3 * 2^RATIO_SCALE
-#define TSL2561_LUX_B8T           (0x0000)  // 0.000 * 2^LUX_SCALE
-#define TSL2561_LUX_M8T           (0x0000)  // 0.000 * 2^LUX_SCALE
-
-// CS package values
-#define TSL2561_LUX_K1C           (0x0043)  // 0.130 * 2^RATIO_SCALE
-#define TSL2561_LUX_B1C           (0x0204)  // 0.0315 * 2^LUX_SCALE
-#define TSL2561_LUX_M1C           (0x01ad)  // 0.0262 * 2^LUX_SCALE
-#define TSL2561_LUX_K2C           (0x0085)  // 0.260 * 2^RATIO_SCALE
-#define TSL2561_LUX_B2C           (0x0228)  // 0.0337 * 2^LUX_SCALE
-#define TSL2561_LUX_M2C           (0x02c1)  // 0.0430 * 2^LUX_SCALE
-#define TSL2561_LUX_K3C           (0x00c8)  // 0.390 * 2^RATIO_SCALE
-#define TSL2561_LUX_B3C           (0x0253)  // 0.0363 * 2^LUX_SCALE
-#define TSL2561_LUX_M3C           (0x0363)  // 0.0529 * 2^LUX_SCALE
-#define TSL2561_LUX_K4C           (0x010a)  // 0.520 * 2^RATIO_SCALE
-#define TSL2561_LUX_B4C           (0x0282)  // 0.0392 * 2^LUX_SCALE
-#define TSL2561_LUX_M4C           (0x03df)  // 0.0605 * 2^LUX_SCALE
-#define TSL2561_LUX_K5C           (0x014d)  // 0.65 * 2^RATIO_SCALE
-#define TSL2561_LUX_B5C           (0x0177)  // 0.0229 * 2^LUX_SCALE
-#define TSL2561_LUX_M5C           (0x01dd)  // 0.0291 * 2^LUX_SCALE
-#define TSL2561_LUX_K6C           (0x019a)  // 0.80 * 2^RATIO_SCALE
-#define TSL2561_LUX_B6C           (0x0101)  // 0.0157 * 2^LUX_SCALE
-#define TSL2561_LUX_M6C           (0x0127)  // 0.0180 * 2^LUX_SCALE
-#define TSL2561_LUX_K7C           (0x029a)  // 1.3 * 2^RATIO_SCALE
-#define TSL2561_LUX_B7C           (0x0037)  // 0.00338 * 2^LUX_SCALE
-#define TSL2561_LUX_M7C           (0x002b)  // 0.00260 * 2^LUX_SCALE
-#define TSL2561_LUX_K8C           (0x029a)  // 1.3 * 2^RATIO_SCALE
-#define TSL2561_LUX_B8C           (0x0000)  // 0.000 * 2^LUX_SCALE
-#define TSL2561_LUX_M8C           (0x0000)  // 0.000 * 2^LUX_SCALE
-
-enum
+ 
+// Luminosity sensor, TSL2561
+// Address b7=0,b6=1,b5=1,b4=1,b3=0,b2=0,b1=1, b0=R/W
+#define TSL2561_ADDRESS_GND         (0x29 << 1)
+#define TSL2561_ADDRESS_FLOAT       (0x39 << 1)
+#define TSL2561_ADDRESS_VDD         (0x49 << 1)
+ 
+////////////// Registers //////////////////////////////////
+// Register definition
+#define TSL2561_CONTROL             0x00
+#define TSL2561_TIMING              0x01
+#define TSL2561_THRESHLOWLOW        0x02
+#define TSL2561_THRESHHIGHLOW       0x04
+#define TSL2561_INTERRUPT           0x06
+#define TSL2561_CRC                 0x08
+#define TSL2561_ID                  0x0A
+#define TSL2561_DATA0LOW            0x0C
+#define TSL2561_DATA0HIGH           0x0D
+#define TSL2561_DATA1LOW            0x0E
+#define TSL2561_DATA1HIGH           0x0F
+ 
+////////////// TIMING PARAMETER ///////////////////////////
+#define TIMING_GAIN_1               (0UL << 4)
+#define TIMING_GAIN_16              (1UL << 4)
+#define TIMING_TIME_13R7            (0x0)
+#define TIMING_TIME_101             (0x1)
+#define TIMING_TIME_402             (0x2)
+#define TIMING_TIME_MANU            (0x3)
+#define TIMING_DEFAULT              (TIMING_GAIN_1 + TIMING_TIME_402)
+ 
+////////////// ID /////////////////////////////////////////
+#define I_AM_TSL2561CS              0x01
+#define I_AM_TSL2561T_FN_CL         0x05
+ 
+////////////// COMMAND ////////////////////////////////////
+#define CMD_CMDMODE                 (1UL << 7)
+#define CMD_CLEAR                   (1UL << 6)
+#define CMD_WORD                    (1UL << 5)
+#define CMD_BLOCK                   (1UL << 4)
+#define CMD_SINGLE                  (CMD_CMDMODE)
+#define CMD_MULTI                   (CMD_CMDMODE + CMD_WORD)
+ 
+/** Interface for Luminosity sensor, TSL2561
+ * @code
+ * #include "mbed.h"
+ * #include "TSL2561.h"
+ *
+ * // I2C Communication
+ *  TSL2561      lum(dp5,dp27);    // TSL2561 SDA, SCL
+ * // If you connected I2C line not only this device but also other devices,
+ * //     you need to declare following method.
+ *  I2C          i2c(dp5,dp27);    // SDA, SCL
+ *  TSL2561      lum(i2c);         // TSL2561 SDA, SCL (Data available every 400mSec)
+ *
+ * int main() {;
+ *   while(true){
+ *      printf("Illuminance: %+7.2f [Lux]\r\n", lum.lux());
+ *      wait(1.0);
+ *   }
+ * }
+ * @endcode
+ */
+ 
+class TSL2561
 {
-  TSL2561_REGISTER_CONTROL          = 0x00,
-  TSL2561_REGISTER_TIMING           = 0x01,
-  TSL2561_REGISTER_THRESHHOLDL_LOW  = 0x02,
-  TSL2561_REGISTER_THRESHHOLDL_HIGH = 0x03,
-  TSL2561_REGISTER_THRESHHOLDH_LOW  = 0x04,
-  TSL2561_REGISTER_THRESHHOLDH_HIGH = 0x05,
-  TSL2561_REGISTER_INTERRUPT        = 0x06,
-  TSL2561_REGISTER_CRC              = 0x08,
-  TSL2561_REGISTER_ID               = 0x0A,
-  TSL2561_REGISTER_CHAN0_LOW        = 0x0C,
-  TSL2561_REGISTER_CHAN0_HIGH       = 0x0D,
-  TSL2561_REGISTER_CHAN1_LOW        = 0x0E,
-  TSL2561_REGISTER_CHAN1_HIGH       = 0x0F
+public:
+    /** Configure data pin
+      * @param data SDA and SCL pins
+      */
+    TSL2561(PinName p_sda, PinName p_scl);
+    TSL2561(PinName p_sda, PinName p_scl, uint8_t addr);
+ 
+    /** Configure data pin (with other devices on I2C line)
+      * @param I2C previous definition
+      */
+    TSL2561(I2C& p_i2c);
+    TSL2561(I2C& p_i2c, uint8_t addr);
+ 
+    /** Get approximates the human eye response
+      *  in the commonly used Illuminance unit of Lux
+      * @param none
+      * @return Lux
+      */
+    float lux(void);
+ 
+    /** Set timing register
+      * @param timing parameter
+      * @return timing read data
+      */
+    uint8_t set_timing_reg(uint8_t parameter);
+ 
+    /** Read timing register
+      * @param timing parameter
+      * @return timing read data
+      */
+    uint8_t read_timing_reg(void);
+ 
+    /** Set I2C clock frequency
+      * @param freq.
+      * @return none
+      */
+    void frequency(int hz);
+ 
+    /** check Device ID number
+      * @param none
+      * @return TSL2561 = 1, others  0
+      */
+    uint8_t who_am_i(void);
+ 
+    /** Read ID and Revision Number
+      * @param none
+      * @return ID + REVNO
+      */
+    uint8_t read_ID(void);
+ 
+    /** Power Up/Down
+      * @param none
+      * @return none
+      */
+    void power_up(void);
+    void power_down(void);
+ 
+protected:
+    I2C *_i2c_p;
+    I2C &_i2c;
+ 
+    void init(void);
+ 
+private:
+    uint8_t  TSL2561_addr;
+    uint8_t  dt[4];
+    uint32_t ch0;
+    uint32_t ch1;
+    int8_t   gain;
+    uint8_t  id_number;
+    double   integ_time;
 };
-
-typedef enum
-{
-  TSL2561_INTEGRATIONTIME_13MS      = 0x00,    // 13.7ms
-  TSL2561_INTEGRATIONTIME_101MS     = 0x01,    // 101ms
-  TSL2561_INTEGRATIONTIME_402MS     = 0x02     // 402ms
-}
-tsl2561IntegrationTime_t;
-
-typedef enum
-{
-  TSL2561_GAIN_0X                   = 0x00,    // No gain
-  TSL2561_GAIN_16X                  = 0x10,    // 16x gain
-}
-tsl2561Gain_t;
-
-class TSL2561 {
-
-public:        
-        //---CLASS CONSTRUCTOR---//
-        TSL2561();       
-        TSL2561(uint8_t addr);
-        TSL2561(PinName sda, PinName scl);
-        TSL2561(PinName sda, PinName scl, uint8_t addr);
-        
-        bool begin(void);
-        void enable(void);
-        void disable(void);
-        void write8(uint8_t r, uint8_t v);
-        uint16_t read16(uint8_t reg);
-
-        uint32_t calculateLux(uint16_t ch0, uint16_t ch1);
-        void setTiming(tsl2561IntegrationTime_t integration);
-        void setGain(tsl2561Gain_t gain);
-        uint16_t getLuminosity (uint8_t channel);
-        uint32_t getFullLuminosity ();
-
- private:
-        I2C i2c;
-        int8_t _addr;
-        tsl2561IntegrationTime_t _integration;
-        tsl2561Gain_t _gain;
-
-        bool _initialized;
-};
-#endif
+ 
+#endif      // TSL2561_H
