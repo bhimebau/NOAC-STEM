@@ -35,11 +35,6 @@ Makefile : ;
 clean :
 	$(call RM,$(OBJDIR))
 
-tags:
-	rm -f TAGS
-	find . -type f -iname "*.[ch]" | xargs etags --append
-	find . -type f -iname "*.cpp" | xargs etags --append
-
 else
 
 # trick rules into thinking we are in the root, when we are in the bulid dir
@@ -423,6 +418,17 @@ $(PROJECT).hex: $(PROJECT).elf
 
 download: $(PROJECT).bin
 	st-flash write $(PROJECT).bin 0x8000000 > st-flash.log 2>&1
+	st-flash reset
+
+tags: $(PROJECT).elf
+	cd ..;./printdeps BUILD/main.d BUILD/ADXL362/ADXL362.d BUILD/TSL2561/TSL2561.d 
+#
+# rm -f TAGS
+# 	find . -type f -iname "*.[ch]" | xargs etags --append
+# 	find . -type f -iname "*.cpp" | xargs etags --append
+
+
+
 
 # Rules
 ###############################################################################

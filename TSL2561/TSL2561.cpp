@@ -138,7 +138,36 @@ uint8_t TSL2561::read_timing_reg(void)
     }
     return dt[0];
 }
+
+/////////////// Interrupt Register ///////////////////////////
+uint8_t TSL2561::set_interrupt_reg(uint8_t parameter)
+{
+  dt[0] = CMD_SINGLE + TSL2561_INTERRUPT;
+  dt[1] = parameter;
+  _i2c.write((int)TSL2561_addr, (char *)dt, 2, false);
+  dt[0] = CMD_SINGLE + TSL2561_INTERRUPT;
+  _i2c.write((int)TSL2561_addr, (char *)dt, 1, true);
+  _i2c.read(TSL2561_addr, (char *)dt, 1, false);
+  return dt[0];
+}
  
+uint8_t TSL2561::read_interrupt_reg(void)
+{
+    uint8_t i;
+
+    dt[0] = CMD_SINGLE + TSL2561_INTERRUPT;
+    _i2c.write((int)TSL2561_addr, (char *)dt, 1, true);
+    _i2c.read(TSL2561_addr, (char *)dt, 1, false);
+    return dt[0];
+}
+
+uint8_t TSL2561::clear_interrupt_flag(void) {
+  dt[0] = CMD_CMDMODE | CMD_CLEAR;
+  _i2c.write((int)TSL2561_addr, (char *)dt, 1, false);
+  return dt[0];
+}
+
+
 /////////////// ID ////////////////////////////////////////
 uint8_t TSL2561::read_ID()
 {

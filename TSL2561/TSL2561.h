@@ -112,6 +112,14 @@ public:
       * @param timing parameter
       * @return timing read data
       */
+
+    uint8_t read_interrupt_reg(void);
+    uint8_t clear_interrupt_flag(void);
+    uint8_t set_interrupt_reg(uint8_t parameter);
+
+    /** Write the interrupt register
+      */
+
     uint8_t set_timing_reg(uint8_t parameter);
  
     /** Read timing register
