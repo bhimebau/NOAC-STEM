@@ -422,13 +422,6 @@ download: $(PROJECT).bin
 
 tags: $(PROJECT).elf
 	cd ..;./printdeps BUILD/main.d BUILD/ADXL362/ADXL362.d BUILD/TSL2561/TSL2561.d 
-#
-# rm -f TAGS
-# 	find . -type f -iname "*.[ch]" | xargs etags --append
-# 	find . -type f -iname "*.cpp" | xargs etags --append
-
-
-
 
 # Rules
 ###############################################################################

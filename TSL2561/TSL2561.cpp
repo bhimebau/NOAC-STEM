@@ -153,8 +153,6 @@ uint8_t TSL2561::set_interrupt_reg(uint8_t parameter)
  
 uint8_t TSL2561::read_interrupt_reg(void)
 {
-    uint8_t i;
-
     dt[0] = CMD_SINGLE + TSL2561_INTERRUPT;
     _i2c.write((int)TSL2561_addr, (char *)dt, 1, true);
     _i2c.read(TSL2561_addr, (char *)dt, 1, false);
