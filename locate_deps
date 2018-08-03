@@ -1,0 +1,48 @@
+#!/usr/bin/env python
+import sys
+import os
+from subprocess import call
+import pickle
+
+exclude_list = ["./.temp/tools/.hg/store/data/arm__pack__manager/index.json.d",\
+                "./BUILD/mbed-os/cmsis/TARGET_CORTEX_M/mbed_tz_context.d",\
+                './.temp/tools/.hg/store/data/arm__pack__manager/index.json.d']
+
+depfile = sys.argv[1]
+print depfile
+if depfile in exclude_list:
+    exit(0)
+
+if (os.path.isfile("deptemp")):
+    dt = open("deptemp",'rb+')
+    deplist = pickle.load(dt)
+else:
+    dt = open("deptemp",'wb+')
+    deplist = []
+
+if (os.path.isfile(depfile)):
+    fd = open(depfile,'r')
+else:
+    sys.exit("Could not open %s"%(depfile))
+line = fd.readline()
+while line:
+    linelist = line.split(" ")
+    for s in linelist:
+        if (s.find("\\")!=-1):
+            pass
+        elif (s.find(".cpp") != -1) or \
+             (s.find(".c") != -1) or \
+             (s.find(".h") != -1):
+            print "file",s,"from", depfile
+            #             print s
+            srelative = s.replace('../','')
+            if os.path.isfile(srelative):
+                if srelative in deplist:
+                    pass
+                else:
+                    deplist.append(srelative)
+    line = fd.readline()
+pickle.dump(deplist,dt)
+dt.close()
+   
+

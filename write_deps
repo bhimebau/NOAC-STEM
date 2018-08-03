@@ -1,0 +1,23 @@
+#!/usr/bin/env python
+import sys
+import os
+# from subprocess import call
+import pickle
+
+if (os.path.isfile("deptemp")):
+    dt = open("deptemp",'r')
+    deplist = pickle.load(dt)
+else:
+    print "could not locate dependency file"
+
+cs = open("cscope_files",'w+')
+# print deplist
+for f in deplist:
+    print f
+    cs.write("%s\n"%(f))
+cs.close()
+
+    
+
+   
+

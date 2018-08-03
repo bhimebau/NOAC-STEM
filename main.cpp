@@ -2,18 +2,26 @@
 #include "ADXL362.h"
 #include "TSL2561.h"
 
-
 // Device Instantiation 
 ADXL362 adxl362(PA_0,PA_7,PA_6,PA_1);
 TSL2561 tsl2561(PB_7,PB_6,TSL2561_ADDRESS_GND);
 DigitalOut led(LED1);
 Timer processtimer;
 InterruptIn lightsensor(PA_3); 
+Thread gothread;
+
 
 int count = 0;
 float lux = 0;
 int lightdata_avail = 0;
 
+
+void led_blinker(void) {
+  while (true) {
+    led = !led;
+    wait(1);
+  }
+}
 
 void process_light_data(void) {
   lightdata_avail = 1;
@@ -43,6 +51,7 @@ int main() {
   tsl2561.set_interrupt_reg(0x10);
   tsl2561.clear_interrupt_flag();
   led=0;
+  gothread.start(led_blinker);
   
   while(1) {
     if (lightdata_avail) {
@@ -51,8 +60,7 @@ int main() {
       lux = tsl2561.lux();
       printf("lux=%f\n\r",lux);
     }
-      
-      
+    
     // printf("Lux Timing Register = 0x%x\n\r",tsl2561.read_timing_reg());
     // led = !led; // Toggle LED
     // x=adxl362.scanx_u8();
